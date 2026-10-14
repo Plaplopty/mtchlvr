@@ -1,0 +1,8 @@
+package com.mtchlvr.hotel.service;
+import com.mtchlvr.hotel.model.*; import com.mtchlvr.hotel.repo.*; import org.springframework.stereotype.Service; import org.springframework.transaction.annotation.Transactional; import java.time.LocalDate; import java.util.List;
+@Service public class ReservationService {
+ private final ReservationRepository reservations; private final RoomRepository rooms; private final UserRepository users;
+ public ReservationService(ReservationRepository r,RoomRepository rooms,UserRepository users){this.reservations=r;this.rooms=rooms;this.users=users;}
+ public boolean isAvailable(Room room,LocalDate in,LocalDate out){if(in==null||out==null||!out.isAfter(in)||in.isBefore(LocalDate.now())||!room.isAvailable())return false;return reservations.findAll().stream().noneMatch(r->r.getRoom().getId().equals(room.getId())&&!List.of("CANCELLED","REJECTED").contains(r.getStatus())&&in.isBefore(r.getCheckOut())&&out.isAfter(r.getCheckIn()));}
+ @Transactional public Reservation reserve(String email,Long roomId,LocalDate in,LocalDate out){if(in==null||out==null||!out.isAfter(in)||in.isBefore(LocalDate.now()))throw new IllegalArgumentException("Choose valid dates; check-out must be after check-in.");AppUser user=users.findByEmailIgnoreCase(email).orElseThrow();Room room=rooms.findById(roomId).orElseThrow(()->new IllegalArgumentException("Room not found."));if(!isAvailable(room,in,out))throw new IllegalArgumentException("This room is unavailable for those dates.");return reservations.save(new Reservation(user,room,in,out));}
+}
