@@ -23,6 +23,36 @@ import java.time.LocalDate; import java.util.Map;
  @GetMapping("/manager") public String manager(Model m){m.addAttribute("rooms",rooms.findAll());m.addAttribute("reservations",reservations.findAllByOrderByCreatedAtDesc());return "manager";}
  @PostMapping("/manager/reservations/{id}/status") public String status(@PathVariable Long id,@RequestParam @Pattern(regexp="APPROVED|REJECTED|CANCELLED")String status,RedirectAttributes f){Reservation r=reservations.findById(id).orElse(null);if(r==null)f.addFlashAttribute("error","Reservation not found.");else{r.setStatus(status);reservations.save(r);f.addFlashAttribute("success","Reservation status updated.");}return "redirect:/manager";}
  @PostMapping("/api/chat") @ResponseBody public Map<String,String> chat(@RequestBody ChatRequest request){String message=request==null?null:request.message();return Map.of("reply",chat.reply(message));}
+ 
  public record ChatRequest(String message){}
- public static class RegisterForm{@NotBlank @Size(min=2,max=80)public String fullName="";@NotBlank @Email @Size(max=160)public String email="";@NotBlank @Size(min=10,max=72)public String password="";@NotBlank public String confirmPassword="";}
+
+ public static class RegisterForm {
+  @NotBlank
+  @Size(min=2,max=80)
+  private String fullName="";
+
+  @NotBlank
+  @Email
+  @Size(max=160)
+  private String email="";
+
+  @NotBlank
+  @Size(min=10,max=72)
+  private String password="";
+
+  @NotBlank
+  private String confirmPassword="";
+
+  public String getFullName(){return fullName;}
+  public void setFullName(String fullName){this.fullName=fullName;}
+
+  public String getEmail(){return email;}
+  public void setEmail(String email){this.email=email;}
+
+  public String getPassword(){return password;}
+  public void setPassword(String password){this.password=password;}
+
+  public String getConfirmPassword(){return confirmPassword;}
+  public void setConfirmPassword(String confirmPassword){this.confirmPassword=confirmPassword;}
+ }
 }
